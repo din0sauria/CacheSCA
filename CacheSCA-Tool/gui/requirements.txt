@@ -1,0 +1,7 @@
+matplotlib
+numpy
+pandas
+PyQt5
+PyQt5_sip
+PyQt_Fluent_Widgets
+seaborn
