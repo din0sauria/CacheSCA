@@ -96,3 +96,5 @@ htmlcov/
 *.tar.gz
 *.rar
 *.7z
+
+*.listing
