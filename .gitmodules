@@ -1,0 +1,3 @@
+[submodule "CacheSCA-Tool/evaluation/Mastik"]
+	path = CacheSCA-Tool/evaluation/Mastik
+	url = https://github.com/illustager/Mastik.git

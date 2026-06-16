@@ -14,6 +14,8 @@ class EvaluationService:
         self.skey = b''
         self.original_skey = b''
         self.cache_set_idx = []
+        
+        self.config_service.run_command('make', self.evaluation_dir, shell=True)
 
     def run_evaluation(self, data):
         config = self.config_service.get_config()
@@ -57,9 +59,14 @@ class EvaluationService:
         try:
             self.raw_data = np.zeros((16, 256, 64), dtype=int)
             self.valid_rows = []
+            self.rk0 = None
             
             with open(full_path, 'r') as f:
                 for line in f:
+                    if line.startswith('RK[ 0] = '):
+                        self.rk0 = bytes.fromhex(line.split(' = ')[1].strip())
+                        continue
+
                     parts = line.strip().split(': ')
                     if len(parts) != 2:
                         continue
@@ -74,6 +81,8 @@ class EvaluationService:
                     if idx == 0:
                         self.valid_rows.append(pt)
             
+            pages = 16 if self.config_service.config['cipher'] == 'AES' else 4
+            
             self.skey = b''
             self.cache_set_idx = [None] * 16
             for i in range(16):
@@ -82,26 +91,28 @@ class EvaluationService:
                 self.cache_set_idx[i] = set_idx
             
             skey_hex = self.skey.hex()
-            pages = 16 if self.config_service.config['cipher'] == 'AES' else 4
             
+            correct_key = self.original_skey if self.config_service.config['cipher'] == 'AES' else self.rk0
             correct_bytes = 0
             correct_high_nibbles = 0
-            if self.original_skey:
-                for i in range(len(self.skey)):
-                    if self.skey[i] == self.original_skey[i]:
+            if correct_key:
+                for i in range(pages):
+                    if self.skey[i] == correct_key[i]:
                         correct_bytes += 1
-                    if (self.skey[i] & 0xF0) == (self.original_skey[i] & 0xF0):
+                    if (self.skey[i] & 0xF0) == (correct_key[i] & 0xF0):
                         correct_high_nibbles += 1
             
-            return {
+            t = {
                 'success': True, 
-                'skey': skey_hex, 
+                'skey': skey_hex[:2 * pages], 
                 'pages': pages,
-                'original_skey': self.original_skey.hex(),
+                'original_skey': correct_key.hex() if correct_key else None,
                 'correct_bytes': correct_bytes,
                 'correct_high_nibbles': correct_high_nibbles,
-                'total_bytes': len(self.skey)
+                'total_bytes': pages
             }
+            print(t)
+            return t
         
         except Exception as e:
             return {'success': False, 'message': f'Analysis failed: {str(e)}'}

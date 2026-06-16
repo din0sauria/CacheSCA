@@ -1,11 +1,20 @@
-CFLAGS = -O0 -g3 -Wall -Wextra -pedantic -lboundscheck -lmastik
 HITLS_DIR = ../hitls
+MASTIK_DIR = Mastik
 
-aes: main.c wrapper.c wrapper.h $(HITLS_DIR)/declarations.h makefile
-	$(CC) -o $@ $< wrapper.c -L$(HITLS_DIR)/original/ -Wl,-rpath-link,$(HITLS_DIR)/original/ -lhitls_crypto $(CFLAGS) -DAES
+CFLAGS = -Wall -Wextra -pedantic
+LDFLAGS = -L$(HITLS_DIR) -L$(HITLS_DIR)/original/ -L$(MASTIK_DIR)/src/ -lboundscheck -lmastik -lhitls_crypto
 
-sm4: main.c wrapper.c wrapper.h $(HITLS_DIR)/declarations.h makefile
-	$(CC) -o $@ $< wrapper.c -L$(HITLS_DIR)/original/ -Wl,-rpath-link,$(HITLS_DIR)/original/ -lhitls_crypto $(CFLAGS) -DSM4
+aes: main.c wrapper.c wrapper.h $(HITLS_DIR)/declarations.h $(MASTIK_DIR)/src/libmastik.a
+	$(CC) -o $@ $< wrapper.c $(LDFLAGS) $(CFLAGS) -DAES
+
+sm4: main.c wrapper.c wrapper.h $(HITLS_DIR)/declarations.h $(MASTIK_DIR)/src/libmastik.a
+	$(CC) -o $@ $< wrapper.c $(LDFLAGS) $(CFLAGS) -DSM4
+
+$(MASTIK_DIR)/src/libmastik.a: $(MASTIK_DIR)/Makefile
+	$(MAKE) -j -C $(MASTIK_DIR)
+
+$(MASTIK_DIR)/Makefile:
+	cd $(MASTIK_DIR) && ./configure
 
 ARGS ?=
 
