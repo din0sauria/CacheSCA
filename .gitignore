@@ -102,3 +102,6 @@ htmlcov/
 # CacheSCA-Tool specific for libraries
 !CacheSCA-Tool/hitls/**/*.so
 !CacheSCA-Tool/hitls/**/*.a
+
+# CacheSCA-Tool specific for performance results
+performance*
