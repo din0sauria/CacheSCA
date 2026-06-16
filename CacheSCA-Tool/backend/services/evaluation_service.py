@@ -102,7 +102,7 @@ class EvaluationService:
                     if (self.skey[i] & 0xF0) == (correct_key[i] & 0xF0):
                         correct_high_nibbles += 1
             
-            t = {
+            return {
                 'success': True, 
                 'skey': skey_hex[:2 * pages], 
                 'pages': pages,
@@ -111,8 +111,6 @@ class EvaluationService:
                 'correct_high_nibbles': correct_high_nibbles,
                 'total_bytes': pages
             }
-            print(t)
-            return t
         
         except Exception as e:
             return {'success': False, 'message': f'Analysis failed: {str(e)}'}
